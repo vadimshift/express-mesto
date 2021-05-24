@@ -17,7 +17,12 @@ function createCard(req, res) {
     });
 }
 
+function getCards(req, res) {
+  Card.find({})
+    .then((cards) => res.send({ data: cards }))
+    .catch((err) => res.status(500).send({ message: "Произошла ошибка" }));
+}
 
 module.exports = {
-  createCard
+  createCard, getCards
 };
