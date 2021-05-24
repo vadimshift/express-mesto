@@ -23,6 +23,14 @@ function getCards(req, res) {
     .catch((err) => res.status(500).send({ message: "Произошла ошибка" }));
 }
 
+function delCard(req, res) {
+  Card.findByIdAndRemove(req.params.cardId)
+    .then((card) => res.send({ data: card }))
+    .catch((err) => res.status(500).send({ message: "Произошла ошибка" }));
+}
+
 module.exports = {
-  createCard, getCards
+  createCard,
+  getCards,
+  delCard,
 };
