@@ -16,8 +16,18 @@ function createUser(req, res) {
   const { name, about, avatar } = req.body;
 
   User.create({ name, about, avatar })
-    .then((user) => res.send({ data: user }))
-    .catch((err) => res.status(500).send({ message: "Произошла ошибка" }));
+    .then((user) => res.status(201).send({ data: user }))
+    .catch((err) => {
+      if (err.name === "ValidationError") {
+        res.status(400).send({
+          message: `${Object.values(err.errors)
+            .map((e) => e.message)
+            .join(", ")}`,
+        });
+      } else {
+        res.status(500).send({ message: "Произошла ошибка" });
+      }
+    });
 }
 
 module.exports = {
