@@ -15,6 +15,15 @@ mongoose.connect("mongodb://localhost:27017/mestodb", {
 
 // подключаем мидлвары, роуты и всё остальное...
 app.use(bodyParser.json());
+
 app.use(userRoutes);
+
+app.use((req, res, next) => {
+  req.user = {
+    _id: '60ab3927a2c7ad25606e0702'
+  };
+
+  next();
+});
 
 app.listen(PORT);
