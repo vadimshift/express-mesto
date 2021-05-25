@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise */
 const Card = require('../models/card');
 
 function createCard(req, res) {
@@ -10,11 +11,7 @@ function createCard(req, res) {
     .then((card) => res.status(201).send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({
-          message: `${Object.values(err.errors)
-            .map((e) => e.message)
-            .join(', ')}`,
-        });
+        res.status(400).send({ message: 'Переданы некорректные данные при создании карточки' });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
       }
@@ -30,7 +27,13 @@ function getCards(req, res) {
 function delCard(req, res) {
   Card.findByIdAndRemove(req.params.cardId)
     .then((card) => res.send({ data: card }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err.message && ~err.message.indexOf('Cast to ObjectId failed')) {
+        res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
+      } else {
+        res.status(500).send({ message: 'Произошла ошибка' });
+      }
+    });
 }
 
 function setLikeCard(req, res) {
@@ -40,7 +43,13 @@ function setLikeCard(req, res) {
     { new: true },
   )
     .then((card) => res.send({ data: card }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err.message && ~err.message.indexOf('Cast to ObjectId failed')) {
+        res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
+      } else {
+        res.status(500).send({ message: 'Произошла ошибка' });
+      }
+    });
 }
 
 function setDislikeCard(req, res) {
@@ -50,7 +59,13 @@ function setDislikeCard(req, res) {
     { new: true },
   )
     .then((card) => res.send({ data: card }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err.message && ~err.message.indexOf('Cast to ObjectId failed')) {
+        res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
+      } else {
+        res.status(500).send({ message: 'Произошла ошибка' });
+      }
+    });
 }
 
 module.exports = {
