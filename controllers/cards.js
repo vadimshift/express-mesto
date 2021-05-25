@@ -1,18 +1,22 @@
-const Card = require("../models/card");
+const Card = require('../models/card');
 
 function createCard(req, res) {
-  const { name, link, owner, likes, createdAt } = req.body;
-  Card.create({ name, link, owner: req.user._id, likes, createdAt })
+  const {
+    name, link, likes, createdAt,
+  } = req.body;
+  Card.create({
+    name, link, owner: req.user._id, likes, createdAt,
+  })
     .then((card) => res.status(201).send({ data: card }))
     .catch((err) => {
-      if (err.name === "ValidationError") {
+      if (err.name === 'ValidationError') {
         res.status(400).send({
           message: `${Object.values(err.errors)
             .map((e) => e.message)
-            .join(", ")}`,
+            .join(', ')}`,
         });
       } else {
-        res.status(500).send({ message: "Произошла ошибка" });
+        res.status(500).send({ message: 'Произошла ошибка' });
       }
     });
 }
@@ -20,17 +24,39 @@ function createCard(req, res) {
 function getCards(req, res) {
   Card.find({})
     .then((cards) => res.send({ data: cards }))
-    .catch((err) => res.status(500).send({ message: "Произошла ошибка" }));
+    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 }
 
 function delCard(req, res) {
   Card.findByIdAndRemove(req.params.cardId)
     .then((card) => res.send({ data: card }))
-    .catch((err) => res.status(500).send({ message: "Произошла ошибка" }));
+    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+}
+
+function setLikeCard(req, res) {
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $addToSet: { likes: req.user._id } }, // добавление _id в массив, если его там нет
+    { new: true },
+  )
+    .then((card) => res.send({ data: card }))
+    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+}
+
+function setDislikeCard(req, res) {
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $pull: { likes: req.user._id } }, // убрать _id из массива
+    { new: true },
+  )
+    .then((card) => res.send({ data: card }))
+    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 }
 
 module.exports = {
   createCard,
   getCards,
   delCard,
+  setLikeCard,
+  setDislikeCard,
 };

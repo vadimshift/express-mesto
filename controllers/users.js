@@ -1,15 +1,15 @@
-const User = require("../models/user");
+const User = require('../models/user');
 
 function getUrers(req, res) {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch((err) => res.status(500).send({ message: "Произошла ошибка" }));
+    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 }
 
 function getUserById(req, res) {
   User.findById(req.params.userId)
     .then((user) => res.send({ data: user }))
-    .catch((err) => res.status(500).send({ message: "Произошла ошибка" }));
+    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 }
 
 function createUser(req, res) {
@@ -18,14 +18,14 @@ function createUser(req, res) {
   User.create({ name, about, avatar })
     .then((user) => res.status(201).send({ data: user }))
     .catch((err) => {
-      if (err.name === "ValidationError") {
+      if (err.name === 'ValidationError') {
         res.status(400).send({
           message: `${Object.values(err.errors)
             .map((e) => e.message)
-            .join(", ")}`,
+            .join(', ')}`,
         });
       } else {
-        res.status(500).send({ message: "Произошла ошибка" });
+        res.status(500).send({ message: 'Произошла ошибка' });
       }
     });
 }
@@ -35,7 +35,15 @@ function updateProfile(req, res) {
 
   User.findByIdAndUpdate(req.user._id, { name, about })
     .then((user) => res.send({ data: user }))
-    .catch((err) => res.status(500).send({ message: "Произошла ошибка" }));
+    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+}
+
+function updateAvatar(req, res) {
+  const { avatar } = req.body;
+
+  User.findByIdAndUpdate(req.user._id, { avatar })
+    .then(() => res.send({ avatar }))
+    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 }
 
 module.exports = {
@@ -43,4 +51,5 @@ module.exports = {
   getUserById,
   createUser,
   updateProfile,
+  updateAvatar,
 };
