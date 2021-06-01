@@ -1,5 +1,6 @@
 /* eslint-disable max-len */
 /* eslint-disable no-bitwise */
+const bcrypt = require('bcryptjs');
 const User = require('../models/user');
 
 function getUrers(req, res) {
@@ -21,9 +22,13 @@ function getUserById(req, res) {
 }
 
 function createUser(req, res) {
-  const { name, about, avatar } = req.body;
-
-  User.create({ name, about, avatar })
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
+  bcrypt.hash(req.body.password, 10)
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    }))
     .then((user) => res.status(201).send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
