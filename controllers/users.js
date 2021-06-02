@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 /* eslint-disable no-bitwise */
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 function getUrers(req, res) {
@@ -23,6 +24,7 @@ function getUserById(req, res) {
 
 function createUser(req, res) {
   const {
+    // eslint-disable-next-line no-unused-vars
     name, about, avatar, email, password,
   } = req.body;
   bcrypt.hash(req.body.password, 10)
@@ -75,10 +77,43 @@ function updateAvatar(req, res) {
     });
 }
 
+function login(req, res) {
+  const { email, password } = req.body;
+  User.findOne({ email })
+    .then((user) => {
+      if (!user) {
+        return Promise.reject(new Error('Неправильные почта или пароль'));
+      }
+      return bcrypt.compare(password, user.password);
+    })
+    // eslint-disable-next-line consistent-return
+    .then((user) => {
+      if (!user) {
+        // хеши не совпали — отклоняем промис
+        return Promise.reject(new Error('Неправильные почта или пароль'));
+      }
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+      // аутентификация успешна
+      res
+        .cookie('jwt', token, {
+        // token - наш JWT токен, который мы отправляем
+          maxAge: 3600000 * 24 * 7,
+          httpOnly: true,
+        })
+        .end();
+    })
+    .catch((err) => {
+      res
+        .status(401)
+        .send({ message: err.message });
+    });
+}
+
 module.exports = {
   getUrers,
   getUserById,
   createUser,
   updateProfile,
   updateAvatar,
+  login,
 };
