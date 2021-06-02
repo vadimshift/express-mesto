@@ -4,7 +4,6 @@ const {
   getUserById,
   updateProfile,
   updateAvatar,
-  login,
 } = require('../controllers/users');
 
 router.get('/users', getUrers);
