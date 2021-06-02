@@ -80,23 +80,25 @@ function updateAvatar(req, res) {
 function login(req, res) {
   const { email, password } = req.body;
   User.findOne({ email })
+    // ищем пользователя в базе данных
     .then((user) => {
       if (!user) {
         return Promise.reject(new Error('Неправильные почта или пароль'));
       }
+      // // сравниваем переданный пароль и хеш из базы
       return bcrypt.compare(password, user.password);
     })
     // eslint-disable-next-line consistent-return
-    .then((user) => {
-      if (!user) {
-        // хеши не совпали — отклоняем промис
+    .then((matched) => {
+      if (!matched) {
         return Promise.reject(new Error('Неправильные почта или пароль'));
       }
-      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
       // аутентификация успешна
+      // создаем токен
+      const token = jwt.sign({ _id: matched._id }, 'some-secret-key', { expiresIn: '7d' });
+      // возвращаем токен в куки, срок жизни 7 дней
       res
         .cookie('jwt', token, {
-        // token - наш JWT токен, который мы отправляем
           maxAge: 3600000 * 24 * 7,
           httpOnly: true,
         })
