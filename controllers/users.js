@@ -1,3 +1,5 @@
+/* eslint-disable consistent-return */
+/* eslint-disable no-undef */
 /* eslint-disable max-len */
 /* eslint-disable no-bitwise */
 const bcrypt = require('bcryptjs');
@@ -20,6 +22,14 @@ function getUserById(req, res) {
         res.status(500).send({ message: 'Произошла ошибка' });
       }
     });
+}
+
+function getUser(req, res) {
+  /* const { user } = req.body.user; */
+  console.log(req.cookies.jwt);
+  /* User.find( user )
+    .then((user) => res.send({ data: user }))
+    .catch(() => res.status(500).send({ message: 'Произошла ошибка' })); */
 }
 
 function createUser(req, res) {
@@ -79,23 +89,21 @@ function updateAvatar(req, res) {
 
 function login(req, res) {
   const { email, password } = req.body;
-  User.findOne({ email })
-    // ищем пользователя в базе данных
+  User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
         return Promise.reject(new Error('Неправильные почта или пароль'));
       }
-      // // сравниваем переданный пароль и хеш из базы
       return bcrypt.compare(password, user.password);
     })
-    // eslint-disable-next-line consistent-return
-    .then((matched) => {
-      if (!matched) {
+    .then((user) => {
+      if (!user) {
+        // хеши не совпали — отклоняем промис
         return Promise.reject(new Error('Неправильные почта или пароль'));
       }
       // аутентификация успешна
       // создаем токен
-      const token = jwt.sign({ _id: matched._id }, 'some-secret-key', { expiresIn: '7d' });
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
       // возвращаем токен в куки, срок жизни 7 дней
       res
         .cookie('jwt', token, {
@@ -118,4 +126,5 @@ module.exports = {
   updateProfile,
   updateAvatar,
   login,
+  getUser,
 };

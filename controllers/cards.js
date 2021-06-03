@@ -2,6 +2,7 @@
 const Card = require('../models/card');
 
 function createCard(req, res) {
+
   const {
     name, link, likes, createdAt,
   } = req.body;
