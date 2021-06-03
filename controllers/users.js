@@ -26,7 +26,9 @@ function getUserById(req, res) {
 
 function getUser(req, res) {
   /* const { user } = req.body.user; */
-  console.log(req.cookies.jwt);
+  const token = req.cookies.jwt;
+  /* const decoded = jwt.verify(token, 'some-secret-key'); */
+  console.log(token);
   /* User.find( user )
     .then((user) => res.send({ data: user }))
     .catch(() => res.status(500).send({ message: 'Произошла ошибка' })); */
@@ -94,23 +96,23 @@ function login(req, res) {
       if (!user) {
         return Promise.reject(new Error('Неправильные почта или пароль'));
       }
-      return bcrypt.compare(password, user.password);
-    })
-    .then((user) => {
-      if (!user) {
-        // хеши не совпали — отклоняем промис
-        return Promise.reject(new Error('Неправильные почта или пароль'));
-      }
-      // аутентификация успешна
-      // создаем токен
-      const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
-      // возвращаем токен в куки, срок жизни 7 дней
-      res
-        .cookie('jwt', token, {
-          maxAge: 3600000 * 24 * 7,
-          httpOnly: true,
-        })
-        .end();
+      return bcrypt.compare(password, user.password)
+        .then((matched) => {
+          if (!matched) {
+            // хеши не совпали — отклоняем промис
+            return Promise.reject(new Error('Неправильные почта или пароль'));
+          }
+          // аутентификация успешна
+          // создаем токен
+          const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+          // возвращаем токен в куки, срок жизни 7 дней
+          res
+            .cookie('jwt', token, {
+              maxAge: 3600000 * 24 * 7,
+              httpOnly: true,
+            })
+            .end();
+        });
     })
     .catch((err) => {
       res
