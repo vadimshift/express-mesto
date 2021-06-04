@@ -25,13 +25,14 @@ function getUserById(req, res) {
 }
 
 function getUser(req, res) {
-  /* const { user } = req.body.user; */
+  // извлекаем токен
   const token = req.cookies.jwt;
-  /* const decoded = jwt.verify(token, 'some-secret-key'); */
-  console.log(token);
-  /* User.find( user )
+  // извлекаем id пользователя
+  const decoded = jwt.verify(token, 'some-secret-key');
+  // ищем пользователя в БД по id
+  User.findById(decoded._id)
     .then((user) => res.send({ data: user }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' })); */
+    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 }
 
 function createUser(req, res) {
