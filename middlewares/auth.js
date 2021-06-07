@@ -1,7 +1,6 @@
 /* eslint-disable linebreak-style */
-/* eslint-disable consistent-return */
-
 const jwt = require('jsonwebtoken');
+const { UnauthorizedError } = require('./errors');
 
 module.exports = (req, res, next) => {
   // извлекаем токен
@@ -11,9 +10,7 @@ module.exports = (req, res, next) => {
   try {
     payload = jwt.verify(token, 'some-secret-key');
   } catch (err) {
-    return res
-      .status(401)
-      .send({ message: 'Необходимо авторизоваться' });
+    if (err.name === 'JsonWebTokenError') { throw new UnauthorizedError('Необходимо авторизоваться'); }
   }
   req.user = payload; // записываем пейлоуд в объект запроса
   next();

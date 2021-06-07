@@ -5,7 +5,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const NotFoundError = require('../middlewares/errors');
+const { NotFoundError, ValidationError, DuplicateEmailError } = require('../middlewares/errors');
 
 function getUrers(req, res, next) {
   User.find({})
@@ -54,9 +54,10 @@ function createUser(req, res, next) {
     .then((user) => res.status(201).send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Переданы некорректные данные при создании пользователя' });
-      } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
+        throw new ValidationError('Переданы некорректные данные при создании пользователя');
+      } else if
+      (err.name === 'MongoError') {
+        throw new DuplicateEmailError('Пользователь с таким email уже зарегистрирован');
       }
     })
     .catch(next);
