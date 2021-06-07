@@ -5,26 +5,28 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const NotFoundError = require('../middlewares/errors');
 
-function getUrers(req, res) {
+function getUrers(req, res, next) {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch(next);
 }
 
-function getUserById(req, res) {
+function getUserById(req, res, next) {
   User.findById(req.params.userId)
-    .then((user) => res.send({ data: user }))
+    .then((user) => {
+      res.send({ data: user });
+    })
     .catch((err) => {
-      if (err.message && ~err.message.indexOf('Cast to ObjectId failed')) {
-        res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
-      } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
+      if (err.name === 'CastError') {
+        throw new NotFoundError('Пользователь по указанному id не найден');
       }
-    });
+    })
+    .catch(next);
 }
 
-function getUser(req, res) {
+function getUser(req, res, next) {
   // извлекаем токен
   const token = req.cookies.jwt;
   // извлекаем id пользователя
@@ -32,10 +34,15 @@ function getUser(req, res) {
   // ищем пользователя в БД по id
   User.findById(decoded._id)
     .then((user) => res.send({ data: user }))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        throw new NotFoundError('Пользователь по указанному id не найден');
+      }
+    })
+    .catch(next);
 }
 
-function createUser(req, res) {
+function createUser(req, res, next) {
   const {
     // eslint-disable-next-line no-unused-vars
     name, about, avatar, email, password,
@@ -51,7 +58,8 @@ function createUser(req, res) {
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
       }
-    });
+    })
+    .catch(next);
 }
 
 function updateProfile(req, res) {

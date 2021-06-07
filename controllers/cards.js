@@ -2,7 +2,6 @@
 const Card = require('../models/card');
 
 function createCard(req, res) {
-
   const {
     name, link, likes, createdAt,
   } = req.body;
@@ -26,8 +25,17 @@ function getCards(req, res) {
 }
 
 function delCard(req, res) {
+  const currentUser = req.user._id;
   Card.findByIdAndRemove(req.params.cardId)
-    .then((card) => res.send({ data: card }))
+    .then((res) => {
+      console.log(res);
+      /* if (currentUser === card.owner) {
+        res.send({ message: 'ok' });
+      } else {
+        res.status(500).send({ message: 'Произошла ошибка' });
+      } */
+    })
+  /* console.log(card) *//* res.send({ data: card }) */
     .catch((err) => {
       if (err.message && ~err.message.indexOf('Cast to ObjectId failed')) {
         res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
