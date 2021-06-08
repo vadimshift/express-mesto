@@ -3,9 +3,11 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
+const { errors } = require('celebrate');
 const userRoutes = require('./routes/users');
 const cardRoutes = require('./routes/cards');
 const auth = require('./middlewares/auth');
+const validateUserBody = require('./middlewares/validators');
 
 const {
   createUser,
@@ -29,12 +31,18 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.post('/signin', login);
-app.post('/signup', createUser);
+app.post('/signup', validateUserBody, createUser);
 
 app.use(auth);
 
 app.use(userRoutes);
 app.use(cardRoutes);
+
+app.use('/', (req, res) => {
+  res.status(404).send('<h1>Страница не найдена</h1>');
+});
+
+app.use(errors()); // ошибки celebrate
 
 app.use((err, req, res, next) => {
   // если у ошибки нет статуса, выставляем 500

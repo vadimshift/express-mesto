@@ -24,8 +24,9 @@ function getCards(req, res, next) {
     .catch(next);
 }
 //недопилено
-function delCard(req, res) {
-  const currentUser = req.user._id; // id текущего пользователя
+function delCard(req, res, next) {
+  console.log(req)
+  /* const currentUser = req.user._id; // id текущего пользователя
   const { cardId } = req.params;
   Card.findById(req.params.cardId, res)
     .then((res) => {
@@ -35,7 +36,7 @@ function delCard(req, res) {
         Card.findByIdAndRemove(req.params.cardId, res)
           .then((card) => res.send({ data: card }));
       }
-    })
+    }) */
   /* if (currentUser === cardOwner) {
         //Card.findByIdAndRemove(card)
           .then((res) => console.log(res) /* res.send({ data: card }) */
@@ -53,13 +54,14 @@ function delCard(req, res) {
       } */
     // })
   /* console.log(card) *//* res.send({ data: card }) */
-    .catch((err) => {
+   /*  .catch((err) => {
       if (err.message && ~err.message.indexOf('Cast to ObjectId failed')) {
         res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
       } else {
         res.status(500).send({ message: 'Произошла ошибка' });
       }
-    });
+    }); */
+    .catch(next);
 }
 
 function setLikeCard(req, res, next) {
