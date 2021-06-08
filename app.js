@@ -7,7 +7,7 @@ const { errors } = require('celebrate');
 const userRoutes = require('./routes/users');
 const cardRoutes = require('./routes/cards');
 const auth = require('./middlewares/auth');
-const validateUserBody = require('./middlewares/validators');
+const { validateUserBody, validateAuthentication } = require('./middlewares/validators');
 
 const {
   createUser,
@@ -30,7 +30,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.post('/signin', login);
+app.post('/signin', validateAuthentication, login);
 app.post('/signup', validateUserBody, createUser);
 
 app.use(auth);
