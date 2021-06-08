@@ -8,7 +8,7 @@ class NotFoundError extends Error {
   }
 }
 
-class ValidationError extends Error {
+class BadRequestError extends Error {
   constructor(message) {
     super(message);
     this.statusCode = 400;
@@ -30,5 +30,5 @@ class UnauthorizedError extends Error {
 }
 
 module.exports = {
-  NotFoundError, ValidationError, DuplicateEmailError, UnauthorizedError,
+  NotFoundError, BadRequestError, DuplicateEmailError, UnauthorizedError,
 };

@@ -5,7 +5,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const { NotFoundError, ValidationError, DuplicateEmailError } = require('../middlewares/errors');
+const { NotFoundError, BadRequestError, DuplicateEmailError } = require('../middlewares/errors');
 
 function getUrers(req, res, next) {
   User.find({})
@@ -63,7 +63,7 @@ function createUser(req, res, next) {
     .catch(next);
 }
 
-function updateProfile(req, res) {
+function updateProfile(req, res, next) {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { name, about }, {
@@ -74,14 +74,13 @@ function updateProfile(req, res) {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Переданы некорректные данные при обновлении профиля' });
-      } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
+        throw new BadRequestError('Переданы некорректные данные при обновлении профиля пользователя');
       }
-    });
+    })
+    .catch(next);
 }
 
-function updateAvatar(req, res) {
+function updateAvatar(req, res, next) {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { avatar }, {
@@ -92,25 +91,24 @@ function updateAvatar(req, res) {
     .then(() => res.send({ avatar }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Переданы некорректные данные при обновлении аватара' });
-      } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
+        throw new BadRequestError('Переданы некорректные данные при обновлении аватара пользователя');
       }
-    });
+    })
+    .catch(next);
 }
 
-function login(req, res) {
+function login(req, res, next) {
   const { email, password } = req.body;
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
+        return Promise.reject(new BadRequestError('Неправильные почта или пароль, невозможно авторизоватся'));
       }
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
             // хеши не совпали — отклоняем промис
-            return Promise.reject(new Error('Неправильные почта или пароль'));
+            return Promise.reject(new BadRequestError('Неправильные почта или пароль, невозможно авторизоватся'));
           }
           // аутентификация успешна
           // создаем токен
@@ -124,11 +122,7 @@ function login(req, res) {
             .end();
         });
     })
-    .catch((err) => {
-      res
-        .status(401)
-        .send({ message: err.message });
-    });
+    .catch(next);
 }
 
 module.exports = {
