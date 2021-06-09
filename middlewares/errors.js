@@ -29,6 +29,13 @@ class UnauthorizedError extends Error {
   }
 }
 
+class RuleError extends Error {
+  constructor(message) {
+    super(message);
+    this.statusCode = 403;
+  }
+}
+
 module.exports = {
-  NotFoundError, BadRequestError, DuplicateEmailError, UnauthorizedError,
+  NotFoundError, BadRequestError, DuplicateEmailError, UnauthorizedError, RuleError,
 };

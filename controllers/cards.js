@@ -1,6 +1,9 @@
+/* eslint-disable no-shadow */
+/* eslint-disable quotes */
+/* eslint-disable no-multi-assign */
 /* eslint-disable no-bitwise */
 const Card = require('../models/card');
-const { NotFoundError, BadRequestError } = require('../middlewares/errors');
+const { NotFoundError, BadRequestError, RuleError } = require('../middlewares/errors');
 
 function createCard(req, res, next) {
   const {
@@ -23,44 +26,22 @@ function getCards(req, res, next) {
     .then((cards) => res.send({ data: cards }))
     .catch(next);
 }
-//недопилено
+
 function delCard(req, res, next) {
-  console.log(req)
-  /* const currentUser = req.user._id; // id текущего пользователя
-  const { cardId } = req.params;
-  Card.findById(req.params.cardId, res)
-    .then((res) => {
-      const cardOwner = res.owner;
-      const cardOw = cardOwner.toString();
-      if (req.user._id === res.owner) {
-        Card.findByIdAndRemove(req.params.cardId, res)
+  const currentUser = req.user._id; // id текущего пользователя
+  const { cardId } = req.params; // id карточки из запроса
+  Card.findById(cardId)
+    .then((card) => {
+      const cardOwner = JSON.stringify(card.owner).replace(/"/g, ""); // регулярным выражением убираем кавычки
+      if (currentUser === cardOwner) {
+        Card.findByIdAndRemove(cardId)
           .then((card) => res.send({ data: card }));
-      }
-    }) */
-  /* if (currentUser === cardOwner) {
-        //Card.findByIdAndRemove(card)
-          .then((res) => console.log(res) /* res.send({ data: card }) */
-  // } else { console.log('123'); }
-
-  /*  Card.findByIdAndRemove(req.params.cardId)
-    .then((res) => console.log(res))
-    .then((res) => {
-      console.log('123'); */
-
-  /* if (currentUser === card.owner) {
-        res.send({ message: 'ok' });
+        // .catch((err) => res.send(err));
       } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
-      } */
-    // })
-  /* console.log(card) *//* res.send({ data: card }) */
-   /*  .catch((err) => {
-      if (err.message && ~err.message.indexOf('Cast to ObjectId failed')) {
-        res.status(404).send({ message: 'Карточка с указанным _id не найдена' });
-      } else {
-        res.status(500).send({ message: 'Произошла ошибка' });
+        next(new RuleError('Нет прав на удаление данной карточки'));
       }
-    }); */
+    })
+    .catch(() => next(new NotFoundError('Карточка с указанным _id не найдена')))
     .catch(next);
 }
 
