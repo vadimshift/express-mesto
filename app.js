@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
@@ -8,7 +9,6 @@ const userRoutes = require('./routes/users');
 const cardRoutes = require('./routes/cards');
 const auth = require('./middlewares/auth');
 const { validateUserBody, validateAuthentication } = require('./middlewares/validators');
-
 const {
   createUser,
   login,

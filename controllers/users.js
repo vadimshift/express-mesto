@@ -5,6 +5,8 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+
+const { NODE_ENV, JWT_SECRET } = process.env;
 const { NotFoundError, BadRequestError, DuplicateEmailError } = require('../middlewares/errors');
 
 function getUrers(req, res, next) {
@@ -30,7 +32,7 @@ function getUser(req, res, next) {
   // извлекаем токен
   const token = req.cookies.jwt;
   // извлекаем id пользователя
-  const decoded = jwt.verify(token, 'some-secret-key');
+  const decoded = jwt.verify(token, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret');
   // ищем пользователя в БД по id
   User.findById(decoded._id)
     .then((user) => res.send({ data: user }))
@@ -112,7 +114,7 @@ function login(req, res, next) {
           }
           // аутентификация успешна
           // создаем токен
-          const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+          const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
           // возвращаем токен в куки, срок жизни 7 дней
           res
             .cookie('jwt', token, {
