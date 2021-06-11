@@ -5,6 +5,8 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const { errors } = require('celebrate');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 const userRoutes = require('./routes/users');
 const cardRoutes = require('./routes/cards');
 const auth = require('./middlewares/auth');
@@ -13,9 +15,16 @@ const {
   createUser,
   login,
 } = require('./controllers/users');
+const { NotFoundError } = require('./middlewares/errors');
+const processingErrors = require('./middlewares/processingErrors');
 
 const { PORT = 3000 } = process.env;
 const app = express();
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+});
 
 // подключаемся к серверу mongo
 mongoose.connect('mongodb://localhost:27017/mestodb', {
@@ -29,6 +38,8 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(limiter);
+app.use(helmet());
 
 app.post('/signin', validateAuthentication, login);
 app.post('/signup', validateUserBody, createUser);
@@ -38,22 +49,12 @@ app.use(auth);
 app.use(userRoutes);
 app.use(cardRoutes);
 
-app.use('/', (req, res) => {
-  res.status(404).send('<h1>Страница не найдена</h1>');
+app.use('/', (req, res, next) => {
+  next(new NotFoundError('Страница не найдена'));
 });
 
 app.use(errors()); // ошибки celebrate
 
-app.use((err, req, res, next) => {
-  // если у ошибки нет статуса, выставляем 500
-  const { statusCode = 500, message } = err;
-  res
-    .status(statusCode)
-    .send({
-      // проверяем статус и выставляем сообщение в зависимости от него
-      message: statusCode === 500
-        ? 'На сервере произошла ошибка'
-        : message,
-    });
-});
+app.use(processingErrors); // обработка ошибок
+
 app.listen(PORT);

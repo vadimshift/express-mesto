@@ -32,11 +32,10 @@ function delCard(req, res, next) {
   const { cardId } = req.params; // id карточки из запроса
   Card.findById(cardId)
     .then((card) => {
-      const cardOwner = JSON.stringify(card.owner).replace(/"/g, ""); // регулярным выражением убираем кавычки
+      const cardOwner = card.owner.toString();
       if (currentUser === cardOwner) {
         Card.findByIdAndRemove(cardId)
           .then((card) => res.send({ data: card }));
-        // .catch((err) => res.send(err));
       } else {
         next(new RuleError('Нет прав на удаление данной карточки'));
       }

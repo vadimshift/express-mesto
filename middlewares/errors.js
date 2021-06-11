@@ -37,5 +37,9 @@ class RuleError extends Error {
 }
 
 module.exports = {
-  NotFoundError, BadRequestError, DuplicateEmailError, UnauthorizedError, RuleError,
+  NotFoundError,
+  BadRequestError,
+  DuplicateEmailError,
+  UnauthorizedError,
+  RuleError,
 };
