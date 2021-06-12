@@ -7,7 +7,9 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
-const { NotFoundError, BadRequestError, DuplicateEmailError } = require('../middlewares/errors');
+const {
+  NotFoundError, BadRequestError, DuplicateEmailError, UnauthorizedError,
+} = require('../middlewares/errors');
 
 function getUrers(req, res, next) {
   User.find({})
@@ -108,13 +110,13 @@ function login(req, res, next) {
   User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new BadRequestError('Неправильные почта или пароль, невозможно авторизоватся'));
+        return Promise.reject(new UnauthorizedError('Неправильные почта или пароль, невозможно авторизоватся'));
       }
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
             // хеши не совпали — отклоняем промис
-            return Promise.reject(new BadRequestError('Неправильные почта или пароль, невозможно авторизоватся'));
+            return Promise.reject(new UnauthorizedError('Неправильные почта или пароль, невозможно авторизоватся'));
           }
           // аутентификация успешна
           // создаем токен
@@ -125,6 +127,7 @@ function login(req, res, next) {
               maxAge: 3600000 * 24 * 7,
               httpOnly: true,
             })
+            .send({ message: 'Успешный логин' })
             .end();
         });
     })
