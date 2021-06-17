@@ -10,6 +10,7 @@ const helmet = require('helmet');
 const userRoutes = require('./routes/users');
 const cardRoutes = require('./routes/cards');
 const auth = require('./middlewares/auth');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 const { validateUserBody, validateAuthentication } = require('./middlewares/validators');
 const {
   createUser,
@@ -40,6 +41,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(limiter);
 app.use(helmet());
+app.use(requestLogger);
 
 app.post('/signin', validateAuthentication, login);
 app.post('/signup', validateUserBody, createUser);
@@ -52,6 +54,8 @@ app.use(cardRoutes);
 app.use('/', (req, res, next) => {
   next(new NotFoundError('Страница не найдена'));
 });
+
+app.use(errorLogger); // пишем ошибки  в файл
 
 app.use(errors()); // ошибки celebrate
 
